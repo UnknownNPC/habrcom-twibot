@@ -1,0 +1,15 @@
+[package]
+name = "habrcom-twibot"
+version = "0.1.0"
+authors = ["Vitalii Zymukha <unknownvzzv@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+config = "0.9"
+scraper = "0.11.0"
+# Let's start with blocking client
+reqwest = { version = "0.10", features = ["blocking", "json"] }
+rand = "0.7.3"
+htmlescape = "0.3.1"
