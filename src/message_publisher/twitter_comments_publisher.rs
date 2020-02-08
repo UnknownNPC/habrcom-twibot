@@ -24,7 +24,9 @@ impl TwitterCommentsPublisher {
 }
 
 impl CommentPublisher for TwitterCommentsPublisher {
-    fn publish_comment(self, message: String) -> Result<String, String> {
+    fn publish_comment(self, message: &String) -> Result<String, String> {
+        println!("Publishing message: [{}]", message);
+
         let con_token = egg_mode::KeyPair::new(self.consumer_key, self.consumer_secret);
         let access_token = egg_mode::KeyPair::new(self.access_key, self.access_secret);
         let token = egg_mode::Token::Access {

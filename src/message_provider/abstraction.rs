@@ -1,3 +1,3 @@
 pub trait CommentProvider {
-    fn get_comment(url: String) -> String;
+    fn get_comment(url: &String) -> Option<String>;
 }

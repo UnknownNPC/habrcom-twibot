@@ -1,13 +1,13 @@
 extern crate rand;
 
-use core::borrow::BorrowMut;
+use core::borrow::{Borrow, BorrowMut};
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use sanitize_html::rules::predefined::RELAXED;
 use sanitize_html::sanitize_str;
-use scraper::element_ref::ElementRef;
 use scraper::{Html, Selector};
+use scraper::element_ref::ElementRef;
 
 use super::abstraction::CommentProvider;
 
@@ -20,7 +20,7 @@ const MIN_COMMENTS_NUM: &'static usize = &10;
 const COMMENT_LEN_CHARS: &'static usize = &280;
 
 impl CommentProvider for HabrCommentsProvider {
-    fn get_comment(url: String) -> String {
+    fn get_comment(url: &String) -> Option<String> {
         fn shuffle_list<T>(elements: &mut Vec<T>) {
             let mut rng = thread_rng();
             elements.shuffle(&mut rng);
@@ -55,11 +55,11 @@ impl CommentProvider for HabrCommentsProvider {
         }
 
         fn get_page_html(url: &str) -> String {
-            reqwest::blocking::get(url).unwrap().text().unwrap()
+            reqwest::blocking::get(url).unwrap().text().expect(format!("Unable to get HTML page: [{}]", url).borrow())
         }
 
-        fn sanitize_html(mut html: &str) -> String {
-            sanitize_str(&RELAXED, html.borrow_mut()).expect("Unable to sanitize comment_str")
+        fn sanitize_html(html: &str) -> String {
+            sanitize_str(&RELAXED, html).expect("Unable to sanitize comment_str")
         }
 
         let topics_html_page = get_page_html(&url);
@@ -98,18 +98,11 @@ impl CommentProvider for HabrCommentsProvider {
             .into_iter()
             .collect();
         shuffle_list(&mut comments);
-        let comment_str = comments
+
+        comments
             .iter_mut()
             .map(|c| sanitize_html(c.inner_html().borrow_mut()))
+            .filter(|c| !c.contains("<p>"))
             .find(|c| c.len() <= *COMMENT_LEN_CHARS)
-            .expect("Topic hasn't comments available for tweeter :<");
-
-        println!(
-            "RAW comment_str: [{}] from comments size: [{}]",
-            comment_str,
-            comments.len()
-        );
-
-        comment_str
     }
 }

@@ -66,16 +66,20 @@ fn main() {
 
     println!("Searching for comment using next page: [{}]", topics_url);
 
-    let comment = HabrCommentsProvider::get_comment(topics_url);
-    println!("Random comment: [{}]", comment);
+    let mut comment_opt: Option<String> = None;
+    loop {
+        comment_opt = HabrCommentsProvider::get_comment(&topics_url);
+        println!("Comment was found: [{}]", comment_opt.is_some());
+        if comment_opt.is_some() { break; }
+    }
 
     let message_publisher = TwitterCommentsPublisher::new(twitter_consume_key,
                                                           twitter_consume_secret, twitter_access_key,
                                                           twitter_access_secret);
-    let publish_result = message_publisher.publish_comment(comment);
+    let publish_result = message_publisher.publish_comment(&comment_opt.unwrap());
 
     match publish_result {
-        Ok(message) => println!("Message was publsihed: [{}]", message),
+        Ok(message) => println!("Message was published: [{}]", message),
         Err(error_msg) => panic!("Message publishing failed with error: [{}]", error_msg),
     }
 }
