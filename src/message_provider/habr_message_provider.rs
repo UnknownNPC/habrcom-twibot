@@ -99,10 +99,17 @@ impl CommentProvider for HabrCommentsProvider {
             .collect();
         shuffle_list(&mut comments);
 
-        comments
+        let comment_opt = comments
             .iter_mut()
             .map(|c| sanitize_html(c.inner_html().borrow_mut()))
-            .filter(|c| !c.contains("<p>"))
-            .find(|c| c.len() <= *COMMENT_LEN_CHARS)
+            .filter(|c| { !c.contains("<p>") && !c.contains("<a>") } )
+            .find(|c| c.len() <= *COMMENT_LEN_CHARS);
+
+        comment_opt.map(|comment| {
+            comment
+                .replace("<br>", "\n")
+                .replace("<blockquote>", ">>")
+                .replace("</blockquote>", "")
+        })
     }
 }

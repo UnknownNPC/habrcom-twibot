@@ -1,7 +1,6 @@
 extern crate config;
 
 use std::env;
-
 use message_provider::CommentProvider;
 use message_provider::HabrCommentsProvider;
 use message_publisher::CommentPublisher;
@@ -34,7 +33,7 @@ fn main() {
     }
 
     let mut settings = config::Config::new();
-    settings.merge(config::File::with_name("Settings")).unwrap();
+    settings.merge(config::File::with_name("Settings").required(false)).unwrap();
     let topics_url: String = search_conf_param(
         &settings,
         &HABR_TOPICS_URL_CONFIG_KEY,
