@@ -65,6 +65,10 @@ impl CommentProvider for HabrCommentsProvider {
 
         let target_page = url.to_owned() + "/page" + thread_rng().gen_range(1, 9).to_string().borrow();
 
+        println!(
+            "Topics URL: [{}]", target_page
+        );
+
         let topics_html_page = get_page_html(&target_page);
         let topics_html_document = Html::parse_document(&topics_html_page);
 
@@ -88,7 +92,7 @@ impl CommentProvider for HabrCommentsProvider {
 
         println!(
             "Topic URL: [{}] from topics size: [{}]",
-            target_page,
+            topic_url,
             comments_links.len()
         );
 
@@ -102,7 +106,7 @@ impl CommentProvider for HabrCommentsProvider {
             .collect();
         shuffle_list(&mut comments);
 
-        let comment_opt = comments
+        let text_comments: Vec<String> = comments
             .iter_mut()
             .map(|c| sanitize_html(c.inner_html().borrow_mut()))
             .map(|comment| {
@@ -116,10 +120,15 @@ impl CommentProvider for HabrCommentsProvider {
                     .replace("</i>", "*")
                     .replace("<s>", "--")
                     .replace("</s>", "--")
+                    .replace("<p>", "")
+                    .replace("</p>", "\n")
             })
-            .filter(|c| { !c.contains("<p>") && !c.contains("<a ") && !c.contains("<img ") })
-            .find(|c| c.len() <= *COMMENT_LEN_CHARS);
+            .filter(|c| { !c.contains("<code ") && !c.contains("<pre>") && !c.contains("<a ") && !c.contains("<img ") })
+            .filter(|c| c.len() <= *COMMENT_LEN_CHARS)
+            .collect();
 
-        comment_opt
+        println!("Comments available: {}", text_comments.len());
+
+        text_comments.first().cloned()
     }
 }
