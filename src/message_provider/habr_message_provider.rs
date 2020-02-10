@@ -10,6 +10,7 @@ use scraper::{Html, Selector};
 use scraper::element_ref::ElementRef;
 
 use super::abstraction::CommentProvider;
+use self::rand::Rng;
 
 pub struct HabrCommentsProvider;
 
@@ -62,7 +63,9 @@ impl CommentProvider for HabrCommentsProvider {
             sanitize_str(&RELAXED, html).expect("Unable to sanitize comment_str")
         }
 
-        let topics_html_page = get_page_html(&url);
+        let target_page = url.to_owned() + "/page" + thread_rng().gen_range(1, 9).to_string().borrow();
+
+        let topics_html_page = get_page_html(&target_page);
         let topics_html_document = Html::parse_document(&topics_html_page);
 
         let comments_block_selector = Selector::parse(COMMENTS_BLOCK_SELECTOR_CLASS)
@@ -85,7 +88,7 @@ impl CommentProvider for HabrCommentsProvider {
 
         println!(
             "Topic URL: [{}] from topics size: [{}]",
-            topic_url,
+            target_page,
             comments_links.len()
         );
 
@@ -107,10 +110,14 @@ impl CommentProvider for HabrCommentsProvider {
                     .replace("<br>", "\n")
                     .replace("<blockquote>", "»")
                     .replace("</blockquote>", "")
-                    .replace("<b>", "*")
-                    .replace("</b>", "*")
+                    .replace("<b>", "**")
+                    .replace("</b>", "**")
+                    .replace("<i>", "*")
+                    .replace("</i>", "*")
+                    .replace("<s>", "--")
+                    .replace("</s>", "--")
             })
-            .filter(|c| { !c.contains("<p>") && !c.contains("<a ") })
+            .filter(|c| { !c.contains("<p>") && !c.contains("<a ") && !c.contains("<img ") })
             .find(|c| c.len() <= *COMMENT_LEN_CHARS);
 
         comment_opt
